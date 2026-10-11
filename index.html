@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f6fff">
+<title>长沙 · 中原 · 河西走廊 15 日行 | 旅行计划</title>
+<meta name="description" content="个人旅游行程与购票管理网站：每日路线、交通班次、门票与观光车购票时间、住宿安排、待办清单。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="wrap header-inner">
+    <div class="brand">
+      <h1 id="siteTitle">旅行计划</h1>
+      <p id="siteSubtitle" class="sub"></p>
+    </div>
+    <div class="header-meta" id="headerMeta"></div>
+  </div>
+  <nav class="tabbar" id="tabbar" aria-label="页面导航">
+    <div class="wrap tabbar-inner">
+      <button class="tab is-active" data-view="overview">总览</button>
+      <button class="tab" data-view="daily">每日行程</button>
+      <button class="tab" data-view="map">路线地图</button>
+      <button class="tab" data-view="tickets">购票日历</button>
+      <button class="tab" data-view="hotels">住宿</button>
+      <button class="tab" data-view="todos">待办清单</button>
+    </div>
+  </nav>
+</header>
+
+<main class="wrap" id="main">
+  <div id="loading" class="loading">正在加载行程数据…</div>
+  <div id="loadError" class="alert alert-error hidden"></div>
+
+  <!-- ============ 总览 ============ -->
+  <section class="view" id="view-overview" hidden>
+    <div class="stat-grid" id="statGrid"></div>
+
+    <div class="card">
+      <h2>行程路线</h2>
+      <div class="route-chain" id="routeChain"></div>
+      <div class="map-actions" id="overviewMapActions"></div>
+    </div>
+
+    <div class="card">
+      <h2>每日住宿城市</h2>
+      <div class="night-strip" id="nightStrip"></div>
+    </div>
+
+    <div class="card">
+      <h2>关键购票时间 · 最近待办</h2>
+      <div id="overviewKeyTickets"></div>
+    </div>
+
+    <div class="card">
+      <h2>行程完成进度</h2>
+      <div id="overviewProgress"></div>
+    </div>
+
+    <div class="card">
+      <h2>需要你确认的事项</h2>
+      <div id="overviewConflicts"></div>
+    </div>
+
+    <div class="card">
+      <h2>数据说明</h2>
+      <div id="overviewMeta"></div>
+    </div>
+  </section>
+
+  <!-- ============ 每日行程 ============ -->
+  <section class="view" id="view-daily" hidden>
+    <div class="day-tabs" id="dayTabs" role="tablist"></div>
+    <div id="dayPanel"></div>
+  </section>
+
+  <!-- ============ 路线地图 ============ -->
+  <section class="view" id="view-map" hidden>
+    <div class="card">
+      <h2>交互地图</h2>
+      <p class="muted small">默认使用腾讯地图组件（需在 WorkBuddy 预览环境中加载）。若地图未能加载，下方所有地点与路线链接均可直接点击，在高德 / 百度 / 腾讯地图中打开。</p>
+      <div id="tmapWrap" class="tmap-wrap"><div id="tmapBox" class="tmap-box"></div></div>
+      <div id="tmapFallback" class="alert alert-info hidden"></div>
+      <div class="map-actions" id="mapProviderActions"></div>
+    </div>
+    <div class="card">
+      <h2>每天路线导航</h2>
+      <div id="mapDayRoutes"></div>
+    </div>
+    <div class="card">
+      <h2>全部地点定位</h2>
+      <div id="mapPlaces"></div>
+    </div>
+  </section>
+
+  <!-- ============ 购票日历 ============ -->
+  <section class="view" id="view-tickets" hidden>
+    <div class="card">
+      <h2>购票 / 预约管理</h2>
+      <p class="muted small">按开售时间排序。开售日期依据 12306「预售期 15 天（含当日）」与各车站起售时刻推算；未核实到确切时刻的条目明确标注「待核实」，不生成看似准确的时间。</p>
+      <div class="filters" id="ticketFilters"></div>
+      <div id="ticketList"></div>
+    </div>
+    <div class="card">
+      <h2>车站起售时刻</h2>
+      <div id="saleTimeTable"></div>
+    </div>
+    <div class="card">
+      <h2>导出</h2>
+      <div class="export-row">
+        <button class="btn" id="exportJson">下载行程数据（JSON）</button>
+        <button class="btn" id="exportIcs">下载购票提醒日历（ICS）</button>
+        <button class="btn btn-ghost" id="printPage">打印友好视图</button>
+      </div>
+      <p class="muted small" id="icsNote"></p>
+    </div>
+  </section>
+
+  <!-- ============ 住宿 ============ -->
+  <section class="view" id="view-hotels" hidden>
+    <div class="card">
+      <h2>每晚住宿安排</h2>
+      <p class="muted small">仅当你确认已预订的酒店才显示「已预订」；手写计划未标注预订结果的，一律显示「待预订 / 待确认」。</p>
+      <div id="hotelList"></div>
+    </div>
+  </section>
+
+  <!-- ============ 待办清单 ============ -->
+  <section class="view" id="view-todos" hidden>
+    <div class="card">
+      <h2>旅行待办清单</h2>
+      <p class="muted small">勾选状态保存在本机浏览器（localStorage），刷新后仍会保留。</p>
+      <div class="progress-line" id="todoProgress"></div>
+      <div class="filters" id="todoFilters"></div>
+      <div id="todoList"></div>
+      <div class="todo-actions">
+        <button class="btn btn-ghost" id="resetTodos">清除全部勾选</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <div class="wrap">
+    <p class="muted small">本网站仅用于展示、跳转与管理行程，购票与预约请在官方平台完成。页面内所有外部链接均为官方或公开来源，未伪造任何登录、支付或订票功能。</p>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
