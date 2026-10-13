@@ -1,7 +1,7 @@
 # 部署到 GitHub Pages（稳定、可自定义的网址）
 
-**目标网址**：https://jonesway0906.github.io/travel/
-**仓库**：https://github.com/jonesway0906/travel （Public）
+**目标网址**：https://jonesway0906.github.io/travel-zhao/
+**仓库**：https://github.com/jonesway0906/travel-zhao （Public）
 
 这个网址稳定、由你自己控制，以后更新内容时**网址不变**（不像临时分享链接每次发布会换地址）。
 
@@ -18,11 +18,11 @@
 
 ### 还差这一步：开启 Pages
 
-打开 👉 https://github.com/jonesway0906/travel/settings/pages
+打开 👉 https://github.com/jonesway0906/travel-zhao/settings/pages
 
 **Source** 选 `Deploy from a branch` → **Branch** 选 `main`，目录选 `/ (root)` → 点 **Save**。
 
-等 1—2 分钟，访问 https://jonesway0906.github.io/travel/ 即可。
+等 1—2 分钟，访问 https://jonesway0906.github.io/travel-zhao/ 即可。
 
 ---
 
@@ -50,7 +50,7 @@
 
 ### 方式 1：网页直接改（最省事，适合改行程数据）
 
-1. 打开 https://github.com/jonesway0906/travel/blob/main/data/itinerary.json
+1. 打开 https://github.com/jonesway0906/travel-zhao/blob/main/data/itinerary.json
 2. 点右上角铅笔图标编辑，改完点 **Commit changes**
 3. 等 1 分钟，网址内容自动更新
 
@@ -78,7 +78,7 @@ GH_TOKEN='<你的 PAT>' \
 
 ## 部署后自检
 
-打开 https://jonesway0906.github.io/travel/ ，确认：
+打开 https://jonesway0906.github.io/travel-zhao/ ，确认：
 
 - 首页显示「长沙 · 中原 · 河西走廊 15 日行」和 8 张统计卡
 - 顶部「购票日历」能切换视图，能看到「10月11日开售」等条目
