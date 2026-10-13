@@ -256,6 +256,13 @@
 
     $('#overviewHero').innerHTML =
       '<div class="hero">' +
+        '<svg class="hero-deco" viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">' +
+          '<path d="M-30 196C50 146 104 210 176 154S300 62 430 108" stroke="#9dbcff" stroke-width="1.4" stroke-dasharray="7 9" stroke-linecap="round"/>' +
+          '<path d="M-30 154C64 108 128 180 212 120S324 46 430 82" stroke="#b9aaff" stroke-width="1.2" stroke-dasharray="5 10" stroke-linecap="round" opacity=".75"/>' +
+          '<circle cx="86" cy="164" r="3.2" fill="#2f6bff" opacity=".45"/>' +
+          '<circle cx="252" cy="120" r="3.2" fill="#6d5ef0" opacity=".4"/>' +
+          '<circle cx="364" cy="88" r="3.2" fill="#2f6bff" opacity=".3"/>' +
+        '</svg>' +
         '<div class="hero-top">' +
           '<div class="hero-main">' +
             '<div class="hero-count' + cls + '"><span class="n">' + esc(String(cdN)) + '</span><span class="u">' + esc(cdU) + '</span></div>' +
