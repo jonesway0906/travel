@@ -247,16 +247,7 @@
 
     var chain = [m.origin].concat(m.viaCities).concat([m.destination]);
     var chainHtml = chain.map(function (c, i) {
-      return (i > 0 ? '<span class="route-arrow">→</span>' : '') + '<span class="route-node">' + esc(c) + '</span>';
-    }).join('');
-
-    var facts = [
-      { k: '行程天数', v: m.totalDays + ' 天' },
-      { k: '出行人数', v: m.travelers ? m.travelers + ' 人' : '待确认' },
-      { k: '交通段数', v: DATA.transports.length + ' 段' },
-      { k: '计划预算', v: m.plannedBudget ? '¥' + m.plannedBudget : '待确认' }
-    ].map(function (f) {
-      return '<div class="fact"><div class="k">' + esc(f.k) + '</div><div class="v">' + esc(f.v) + '</div></div>';
+      return (i > 0 ? '<span class="route-arrow"></span>' : '') + '<span class="route-node">' + esc(c) + '</span>';
     }).join('');
 
     var firstT = DATA.transports[0], lastT = DATA.transports[DATA.transports.length - 1];
@@ -266,15 +257,14 @@
     $('#overviewHero').innerHTML =
       '<div class="hero">' +
         '<div class="hero-top">' +
-          '<div>' +
+          '<div class="hero-main">' +
             '<div class="hero-count' + cls + '"><span class="n">' + esc(String(cdN)) + '</span><span class="u">' + esc(cdU) + '</span></div>' +
-            '<div class="hero-dates"><b>' + esc(fmtDateFull(m.startDate)) + ' — ' + esc(fmtDateFull(m.endDate)) + '</b> · 共 ' + m.totalDays + ' 天</div>' +
+            '<div class="hero-dates"><b>' + esc(fmtDateFull(m.startDate)) + ' — ' + esc(fmtDateFull(m.endDate)) + '</b><i>共 ' + m.totalDays + ' 天</i></div>' +
           '</div>' +
-          '<div class="hero-side">起点 / 终点<br><b>' + esc(m.origin) + ' → ' + esc(m.destination) + '</b></div>' +
+          '<div class="hero-side"><span>起点 / 终点</span><b>' + esc(m.origin) + ' → ' + esc(m.destination) + '</b></div>' +
         '</div>' +
         '<div class="route-chain">' + chainHtml + '</div>' +
-        '<div class="facts">' + facts + '</div>' +
-        '<div class="map-actions" style="margin-top:14px">' +
+        '<div class="hero-actions">' +
           '<a href="' + MAP.amapRoute(fullFrom, fullTo, 'car') + '" target="_blank" rel="noopener">高德 · 全程路线</a>' +
           '<a href="' + MAP.baiduRoute(fullFrom, fullTo) + '" target="_blank" rel="noopener">百度 · 全程路线</a>' +
         '</div>' +
@@ -356,8 +346,6 @@
           '<p><b>年份推断：</b>' + esc(m.yearAssumption) + '</p>' +
           (m.closureCheck ? '<p><b>景点开放状态核查：</b>' + esc(m.closureCheck) + '</p>' : '') +
           '<p><b>天气来源：</b>10/19—10/27 为天气预报（tianqi.com，2026-10-13 查询）；10/28 起超出预报范围，为同期气候参考，出行前请再确认。</p>' +
-          '<p><b>出行人数：</b>' + esc(m.travelersNote) + '</p>' +
-          '<p><b>预算：</b>' + esc(m.budgetNote) + '</p>' +
           '<p><b>预售规则：</b>' + esc(m.presaleRule) + '</p>' +
           '<p><b>数据来源：</b>' + esc(m.sourceNote) + '</p>' +
           '<p style="margin:0;color:var(--muted)">最后核实日期：' + esc(m.lastVerified) + '</p>' +
