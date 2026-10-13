@@ -259,6 +259,10 @@
       return '<div class="fact"><div class="k">' + esc(f.k) + '</div><div class="v">' + esc(f.v) + '</div></div>';
     }).join('');
 
+    var firstT = DATA.transports[0], lastT = DATA.transports[DATA.transports.length - 1];
+    var fullFrom = firstT ? firstT.from : m.origin;
+    var fullTo = lastT ? lastT.to : m.destination;
+
     $('#overviewHero').innerHTML =
       '<div class="hero">' +
         '<div class="hero-top">' +
@@ -270,6 +274,10 @@
         '</div>' +
         '<div class="route-chain">' + chainHtml + '</div>' +
         '<div class="facts">' + facts + '</div>' +
+        '<div class="map-actions" style="margin-top:14px">' +
+          '<a href="' + MAP.amapRoute(fullFrom, fullTo, 'car') + '" target="_blank" rel="noopener">高德 · 全程路线</a>' +
+          '<a href="' + MAP.baiduRoute(fullFrom, fullTo) + '" target="_blank" rel="noopener">百度 · 全程路线</a>' +
+        '</div>' +
       '</div>';
 
     /* ---- 需要确认的事项 ---- */
@@ -328,35 +336,6 @@
       }).join('');
     }
 
-    /* ---- 每晚住宿（合并连续同店） ---- */
-    var nightMap = {};
-    DATA.hotels.forEach(function (h) { h.nightDates.forEach(function (nd) { nightMap[nd] = h; }); });
-    var rows = [];
-    DATA.days.forEach(function (day) {
-      var hotel = nightMap[day.date];
-      var label, sub;
-      if (hotel) { label = hotel.name; sub = day.city + ' · 酒店'; }
-      else if (day.id === 'day5') { label = '洛阳站候车（不入住）'; sub = day.city + ' · 候车'; }
-      else {
-        var tr = (day.transportIds || []).map(function (id) { return DATA.transports.filter(function (t) { return t.id === id; })[0]; })
-          .filter(function (t) { return t && /2[0-3]:/.test(t.depTime || ''); })[0];
-        if (tr) { label = '夜行列车：' + tr.from + ' → ' + tr.to; sub = day.city + ' · 车上'; }
-        else { label = '—'; sub = day.city; }
-      }
-      if (label === '—') return; // 无住宿信息（如返程当天）不列出
-      var last = rows[rows.length - 1];
-      if (last && last.label === label) { last.end = day.date; last.count++; }
-      else rows.push({ start: day.date, end: day.date, label: label, sub: sub, count: 1 });
-    });
-    $('#nightStrip').innerHTML = rows.map(function (r) {
-      var range = r.count > 1 ? fmtDateShort(r.start) + '–' + fmtDateShort(r.end) : fmtDateShort(r.start);
-      return '<div class="night-row">' +
-        '<div class="d">' + esc(range) + '</div>' +
-        '<div><div class="c">' + esc(r.label) + (r.count > 1 ? '　<span class="pill pill-gray">' + r.count + ' 晚</span>' : '') + '</div>' +
-        '<div class="t">' + esc(r.sub) + '</div></div>' +
-      '</div>';
-    }).join('');
-
     /* ---- 进度 ---- */
     var done = DATA.todos.filter(function (t) { return doneSet[t.id]; }).length;
     var pct = DATA.todos.length ? Math.round(done / DATA.todos.length * 100) : 0;
@@ -395,7 +374,7 @@
     dt.appendChild(ov);
     DATA.days.forEach(function (d) {
       var b = el('button', 'day-tab' + (activeDay === d.id ? ' is-active' : ''),
-        '<span class="dt">' + esc(fmtDateShort(d.date)) + '</span><span class="wk">' + esc(d.weekday) + '</span>');
+        '<span class="dt">' + esc(fmtDateShort(d.date)) + '</span><span class="pl">' + esc(dayPlace(d)) + '</span>');
       b.addEventListener('click', function () { activeDay = d.id; renderDayTabs(); renderDayPanel(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
       dt.appendChild(b);
     });
@@ -403,6 +382,10 @@
   function findTransport(id) { return DATA.transports.filter(function (t) { return t.id === id; })[0]; }
   function findAttraction(id) { return DATA.attractions.filter(function (a) { return a.id === id; })[0]; }
   function findHotel(id) { return DATA.hotels.filter(function (h) { return h.id === id; })[0]; }
+  /* 当天所在地（去掉「（出发）」等备注，多城取后一个） */
+  function dayPlace(d) {
+    return String(d.city || '').replace(/（[^）]*）/g, '').split(' → ').pop().trim();
+  }
 
   function renderDayPanel() {
     var p = $('#dayPanel'); p.innerHTML = '';
@@ -413,9 +396,9 @@
       card.innerHTML = '<div class="card-hd"><h2><span class="ico ico-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg></span>15 天行程一览</h2></div>' +
         DATA.days.map(function (d) {
           return '<div class="day-list-item" data-day="' + d.id + '">' +
-            '<div class="idx"><b>' + esc(fmtDateShort(d.date)) + '</b><small>' + esc(d.weekday) + '</small></div>' +
+            '<div class="idx"><b>' + esc(fmtDateShort(d.date)) + '</b><small>' + esc(dayPlace(d)) + '</small></div>' +
             '<div class="body"><div class="t">' + esc(d.city) + ' · ' + esc(d.theme) + '</div>' +
-            '<div class="s">第 ' + d.index + ' 天 · ' + d.items.length + ' 个节点' +
+            '<div class="s">第 ' + d.index + ' 天 · ' + esc(d.weekday) + ' · ' + d.items.length + ' 个节点' +
               (d.weather ? ' · ' + esc(d.weather.cond) + ' ' + esc(d.weather.temp) : '') + '</div></div>' +
             '<div class="chev">›</div>' +
           '</div>';
@@ -470,6 +453,17 @@
       br += '</div>';
       head += br;
     }
+    // 当天提醒（把总览「需要确认的事项」按 dayId 归到当天）
+    var dayCf = (DATA.conflicts || []).filter(function (c) { return c.dayId === day.id; });
+    if (dayCf.length) {
+      head += dayCf.map(function (c) {
+        return '<div class="notice ' + (c.level === 'warning' ? 'warn' : 'info') + '" style="margin-top:14px">' +
+          '<div class="nt">' + (c.level === 'warning' ? '⚠️ ' : 'ℹ️ ') + esc(c.title) + '</div>' +
+          '<div class="nd">' + esc(c.detail) + '</div>' +
+          '<div class="ns"><b>建议：</b>' + esc(c.suggestion) + '</div>' +
+        '</div>';
+      }).join('');
+    }
     card.innerHTML = head;
 
     var tl = el('div', 'timeline');
@@ -504,17 +498,68 @@
       tl.appendChild(wrap);
     });
     card.appendChild(tl);
+
+    // 当天路线导航（并入当天页面，不再单独占一个板块）
+    if (day.mapRoute) {
+      card.appendChild(el('p', 'tl-desc', '路线：' + esc(day.mapRoute.label)));
+      var ra = el('div', 'map-actions');
+      ra.style.marginTop = '10px';
+      ra.innerHTML =
+        '<a href="' + MAP.amapRoute(day.mapRoute.from, day.mapRoute.to, day.mapRoute.mode) + '" target="_blank" rel="noopener">高德导航</a>' +
+        '<a href="' + MAP.baiduRoute(day.mapRoute.from, day.mapRoute.to) + '" target="_blank" rel="noopener">百度导航</a>';
+      card.appendChild(ra);
+    }
     p.appendChild(card);
 
-    // 当天路线导航
-    if (day.mapRoute) {
+    /* 当天票务与住宿：把购票页 / 住宿页里属于这一天的事合并过来 */
+    var dayTk = [];
+    (day.transportIds || []).forEach(function (id) {
+      var t = findTransport(id); if (!t) return;
+      dayTk.push('<div class="day-item">' +
+        '<div class="di-main"><span class="pill pill-gray">交通</span>' +
+        '<div class="di-body"><div class="di-t">' + esc(t.fromStation) + ' → ' + esc(t.toStation) + '</div>' +
+        '<div class="di-s">' + esc(t.trainNo || '') + ' · ' + esc(t.depTime || '') + (t.arrTime ? '—' + esc(t.arrTime) : '') +
+        (t.seat ? ' · ' + esc(t.seat) : '') + (t.price != null ? ' · ¥' + t.price : '') + '</div></div>' +
+        statusPill(t.status) + '</div>' +
+        '<div class="tk-links"><a href="' + esc(t.officialUrl) + '" target="_blank" rel="noopener">12306 购票</a>' +
+        (t.queryUrl ? '<a href="' + esc(t.queryUrl) + '" target="_blank" rel="noopener">车次查询</a>' : '') +
+        '<a href="' + MAP.amap(t.fromStation) + '" target="_blank" rel="noopener">出发站</a>' +
+        '<a href="' + MAP.amap(t.toStation) + '" target="_blank" rel="noopener">到达站</a></div>' +
+      '</div>');
+    });
+    (day.attractionIds || []).forEach(function (id) {
+      var a = findAttraction(id); if (!a) return;
+      var note = '';
+      if (a.closure && a.closure.closed) {
+        note = '<div class="closure-note">⛔ 自 ' + esc(a.closure.from) + ' 起' + esc(a.closure.scope) + '暂停开放（' +
+               esc(a.closure.reason) + '，' + esc(a.closure.duration) + '）。</div>';
+      }
+      dayTk.push('<div class="day-item">' +
+        '<div class="di-main"><span class="pill pill-violet">景点</span>' +
+        '<div class="di-body"><div class="di-t">' + esc(a.name) + '</div>' +
+        '<div class="di-s">' + esc(a.ticketPrice || '') + '</div></div>' +
+        statusPill(a.status) + '</div>' + note +
+        '<div class="tk-links"><a href="' + esc(a.officialUrl) + '" target="_blank" rel="noopener">官方入口</a>' +
+        '<a href="' + MAP.amap(a.name) + '" target="_blank" rel="noopener">地图定位</a></div>' +
+      '</div>');
+    });
+    var dh = day.hotelId ? findHotel(day.hotelId) : null;
+    if (dh) {
+      dayTk.push('<div class="day-item">' +
+        '<div class="di-main"><span class="pill pill-gray">住宿</span>' +
+        '<div class="di-body"><div class="di-t">' + esc(dh.name) + '</div>' +
+        '<div class="di-s">' + esc(fmtDate(dh.checkIn)) + ' → ' + esc(fmtDate(dh.checkOut)) + ' · ' + dh.nights + ' 晚 · ' +
+        (dh.price != null ? '¥' + dh.price : '价格待确认') + '</div></div>' +
+        statusPill(dh.status) + '</div>' +
+        '<div class="tk-links"><a href="' + esc(dh.bookingUrl) + '" target="_blank" rel="noopener">预订平台</a>' +
+        '<a href="' + MAP.amap(dh.mapQuery || dh.name) + '" target="_blank" rel="noopener">高德</a>' +
+        '<a href="' + MAP.baidu(dh.mapQuery || dh.name) + '" target="_blank" rel="noopener">百度</a></div>' +
+      '</div>');
+    }
+    if (dayTk.length) {
       p.appendChild(el('div', 'card',
-        '<div class="card-hd"><h2><span class="ico ico-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.2"/><circle cx="18" cy="5" r="2.2"/><path d="M8.2 19h6.3a3.5 3.5 0 0 0 0-7H9.5a3.5 3.5 0 0 1 0-7h6.3"/></svg></span>当天路线导航</h2></div>' +
-        '<p class="card-sub">' + esc(day.mapRoute.label) + '</p>' +
-        '<div class="map-actions">' +
-          '<a href="' + MAP.amapRoute(day.mapRoute.from, day.mapRoute.to, day.mapRoute.mode) + '" target="_blank" rel="noopener">高德导航</a>' +
-          '<a href="' + MAP.baiduRoute(day.mapRoute.from, day.mapRoute.to) + '" target="_blank" rel="noopener">百度导航</a>' +
-        '</div>'));
+        '<div class="card-hd"><h2><span class="ico ico-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1.6a2.4 2.4 0 0 0 0 4.8V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3.6a2.4 2.4 0 0 0 0-4.8z"/></svg></span>当天票务与住宿</h2></div>' +
+        dayTk.join('')));
     }
 
     // 当天待办
@@ -558,41 +603,10 @@
     p.appendChild(nav);
   }
 
-  /* ======================= 渲染：路线地图 ======================= */
-  function renderMap() {
-    var m = DATA.meta;
-    var chain = [m.origin].concat(m.viaCities).concat([m.destination]);
-    $('#mapRouteChain').innerHTML = chain.map(function (c, i) {
-      return (i > 0 ? '<span class="route-arrow">→</span>' : '') + '<span class="route-node">' + esc(c) + '</span>';
-    }).join('');
-
-    // 全程导航入口
-    var pa = $('#mapProviderActions'); pa.innerHTML = '';
-    var first = DATA.transports[0], last = DATA.transports[DATA.transports.length - 1];
-    var fullFrom = first ? first.from : m.origin;
-    var fullTo = last ? last.to : m.destination;
-    var a1 = el('a', null, '高德地图 · 全程路线');
-    a1.href = MAP.amapRoute(fullFrom, fullTo, 'car'); a1.target = '_blank'; a1.rel = 'noopener';
-    pa.appendChild(a1);
-    var a2 = el('a', null, '百度地图 · 全程路线');
-    a2.href = MAP.baiduRoute(fullFrom, fullTo); a2.target = '_blank'; a2.rel = 'noopener';
-    pa.appendChild(a2);
-
-    // 每天路线
-    var dr = $('#mapDayRoutes'); dr.innerHTML = '';
-    DATA.days.forEach(function (d) {
-      if (!d.mapRoute) return;
-      dr.appendChild(el('div', 'map-list-item',
-        '<div><div class="n">Day ' + d.index + ' · ' + esc(d.mapRoute.label) + '</div>' +
-        '<div class="s">' + esc(fmtDate(d.date)) + ' ' + esc(d.weekday) + ' · ' + esc(d.city) + '</div></div>' +
-        '<div class="map-actions">' +
-          '<a href="' + MAP.amapRoute(d.mapRoute.from, d.mapRoute.to, d.mapRoute.mode) + '" target="_blank" rel="noopener">高德</a>' +
-          '<a href="' + MAP.baiduRoute(d.mapRoute.from, d.mapRoute.to) + '" target="_blank" rel="noopener">百度</a>' +
-        '</div>'));
-    });
-
-    // 全部地点
-    var mp = $('#mapPlaces'); mp.innerHTML = '';
+  /* ======================= 渲染：全部地点定位（并入总览） ======================= */
+  function renderPlaces() {
+    var mp = $('#overviewPlaces'); if (!mp) return;
+    mp.innerHTML = '';
     var places = [];
     DATA.hotels.forEach(function (h) { places.push({ n: h.name, s: h.city + ' · 酒店', q: h.mapQuery || h.name }); });
     DATA.attractions.forEach(function (a) { places.push({ n: a.name, s: a.city + ' · 景点', q: a.name }); });
@@ -613,10 +627,10 @@
     });
   }
 
-  /* ======================= 渲染：购票日历 ======================= */
+  /* ======================= 渲染：购票与住宿 ======================= */
   var ticketFilter = '全部';
   function renderTicketFilters() {
-    var cats = ['全部', '交通', '景点门票', '观光车', '住宿', '待确认', '已购买'];
+    var cats = ['全部', '交通', '景点门票', '观光车', '待确认', '已购买'];
     var f = $('#ticketFilters'); f.innerHTML = '';
     cats.forEach(function (c) {
       var b = el('button', 'chip' + (ticketFilter === c ? ' is-active' : ''), esc(c));
@@ -667,7 +681,7 @@
     '</div>';
   }
   function renderTicketList() {
-    var list = buildTickets();
+    var list = buildTickets().filter(function (t) { return t.cat !== '住宿'; });
     if (ticketFilter === '待确认') list = list.filter(function (t) { return /待核实|待确认|待官方确认/.test(t.verifyStatus || '') || /待核实|待确认/.test(t.saleTime || ''); });
     else if (ticketFilter === '已购买') list = list.filter(function (t) { return /已购买/.test(t.status || ''); });
     else if (ticketFilter !== '全部') list = list.filter(function (t) { return t.cat === ticketFilter; });
@@ -899,7 +913,7 @@
         renderOverview();
         activeDay = 'overview';
         renderDayTabs(); renderDayPanel();
-        renderMap();
+        renderPlaces();
         renderTicketFilters(); renderTicketList(); renderSaleTimeTable();
         renderHotels();
         renderTodoFilters(); renderTodoProgress(); renderTodoList();

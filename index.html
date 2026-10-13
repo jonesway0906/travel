@@ -33,17 +33,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
         每日行程
       </button>
-      <button class="nav-btn" data-view="map">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
-        路线地图
-      </button>
       <button class="nav-btn" data-view="tickets">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1.6a2.4 2.4 0 0 0 0 4.8V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3.6a2.4 2.4 0 0 0 0-4.8z"/></svg>
-        购票日历
-      </button>
-      <button class="nav-btn" data-view="hotels">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-8h18v8M3 15h18M6 11V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/></svg>
-        住宿
+        购票与住宿
       </button>
       <button class="nav-btn" data-view="todos">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2.5 2.5L20 5"/><path d="M20 12.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
@@ -76,18 +68,16 @@
 
     <div class="card">
       <div class="card-hd">
-        <h2><span class="ico ico-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-8h18v8M3 15h18M6 11V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/></svg></span>每晚住宿</h2>
-        <a href="#hotels" class="small" data-goto="hotels">住宿 ›</a>
-      </div>
-      <div class="night-strip" id="nightStrip"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-hd">
         <h2><span class="ico ico-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5 11 15l4.5-5"/></svg></span>待办进度</h2>
         <a href="#todos" class="small" data-goto="todos">清单 ›</a>
       </div>
       <div id="overviewProgress"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico ico-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg></span>全部地点定位</h2>
+      <p class="card-sub">酒店、景点、车站均可直接在高德 / 百度 / 腾讯地图中打开。</p>
+      <div id="overviewPlaces"></div>
     </div>
 
     <div id="overviewDocWrap"></div>
@@ -99,31 +89,18 @@
     <div id="dayPanel"></div>
   </section>
 
-  <!-- ============ 路线地图 ============ -->
-  <section class="view" id="view-map" hidden>
-    <div class="card">
-      <div class="card-hd"><h2><span class="ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4z"/><path d="M9 4v13M15 6.5v13"/></svg></span>路线总览</h2></div>
-      <p class="card-sub">点击下方任一路线或地点，可在高德 / 百度 / 腾讯地图中直接打开导航。</p>
-      <div class="route-chain" id="mapRouteChain"></div>
-      <div class="map-actions" id="mapProviderActions" style="margin-top:15px"></div>
-    </div>
-    <div class="card">
-      <h2><span class="ico ico-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.2"/><circle cx="18" cy="5" r="2.2"/><path d="M8.2 19h6.3a3.5 3.5 0 0 0 0-7H9.5a3.5 3.5 0 0 1 0-7h6.3"/></svg></span>每天路线导航</h2>
-      <div id="mapDayRoutes"></div>
-    </div>
-    <div class="card">
-      <h2><span class="ico ico-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg></span>全部地点定位</h2>
-      <div id="mapPlaces"></div>
-    </div>
-  </section>
-
-  <!-- ============ 购票日历 ============ -->
+  <!-- ============ 购票与住宿 ============ -->
   <section class="view" id="view-tickets" hidden>
     <div class="card">
       <div class="card-hd"><h2><span class="ico ico-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1.6a2.4 2.4 0 0 0 0 4.8V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3.6a2.4 2.4 0 0 0 0-4.8z"/></svg></span>购票 / 预约</h2></div>
       <p class="card-sub">按开售日期排序。开售日期依据 12306「预售期 15 天（含当日）」与各车站起售时刻推算；未核实到确切时刻的标注「待核实」。</p>
       <div class="filters" id="ticketFilters"></div>
       <div id="ticketList"></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><h2><span class="ico ico-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-8h18v8M3 15h18M6 11V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/></svg></span>住宿预订</h2></div>
+      <p class="card-sub">仅当确认已预订的酒店才显示「已预订」。</p>
+      <div id="hotelList"></div>
     </div>
     <div class="card">
       <h2><span class="ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg></span>车站起售时刻</h2>
@@ -140,20 +117,11 @@
     </div>
   </section>
 
-  <!-- ============ 住宿 ============ -->
-  <section class="view" id="view-hotels" hidden>
-    <div class="card">
-      <div class="card-hd"><h2><span class="ico ico-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-8h18v8M3 15h18M6 11V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/></svg></span>每晚住宿安排</h2></div>
-      <p class="card-sub">仅当确认已预订的酒店才显示「已预订」；手写计划未标注预订结果的，一律显示「待预订 / 待确认」。</p>
-      <div id="hotelList"></div>
-    </div>
-  </section>
-
   <!-- ============ 待办清单 ============ -->
   <section class="view" id="view-todos" hidden>
     <div class="card">
       <div class="card-hd"><h2><span class="ico ico-rose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2.5 2.5L20 5"/><path d="M20 12.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>旅行待办清单</h2></div>
-      <p class="card-sub">勾选状态保存在本机浏览器，刷新后仍会保留。</p>
+      <p class="card-sub">勾选状态保存在本机浏览器，刷新后仍会保留。每个待办也出现在对应日期的行程页里。</p>
       <div class="progress-line" id="todoProgress"></div>
       <div class="filters" id="todoFilters"></div>
       <div id="todoList"></div>
