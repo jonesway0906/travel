@@ -375,6 +375,8 @@
         '<summary>数据说明与来源</summary>' +
         '<div class="doc-body">' +
           '<p><b>年份推断：</b>' + esc(m.yearAssumption) + '</p>' +
+          (m.closureCheck ? '<p><b>景点开放状态核查：</b>' + esc(m.closureCheck) + '</p>' : '') +
+          '<p><b>天气来源：</b>10/19—10/27 为天气预报（tianqi.com，2026-10-13 查询）；10/28 起超出预报范围，为同期气候参考，出行前请再确认。</p>' +
           '<p><b>出行人数：</b>' + esc(m.travelersNote) + '</p>' +
           '<p><b>预算：</b>' + esc(m.budgetNote) + '</p>' +
           '<p><b>预售规则：</b>' + esc(m.presaleRule) + '</p>' +
@@ -413,7 +415,8 @@
           return '<div class="day-list-item" data-day="' + d.id + '">' +
             '<div class="idx"><b>' + esc(fmtDateShort(d.date)) + '</b><small>' + esc(d.weekday) + '</small></div>' +
             '<div class="body"><div class="t">' + esc(d.city) + ' · ' + esc(d.theme) + '</div>' +
-            '<div class="s">第 ' + d.index + ' 天 · ' + d.items.length + ' 个节点</div></div>' +
+            '<div class="s">第 ' + d.index + ' 天 · ' + d.items.length + ' 个节点' +
+              (d.weather ? ' · ' + esc(d.weather.cond) + ' ' + esc(d.weather.temp) : '') + '</div></div>' +
             '<div class="chev">›</div>' +
           '</div>';
         }).join('');
@@ -443,6 +446,30 @@
       '<div><span>退房</span>' + esc(day.checkout || '—') + '</div>' +
       '<div><span>住宿</span>' + esc(hotelName) + '</div>' +
     '</div>';
+    if (day.weather || day.advice || day.gear) {
+      var br = '<div class="day-brief">';
+      if (day.weather) {
+        br += '<div class="brief-row">' +
+          '<span class="ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg></span>' +
+          '<div><div class="bl">今日天气<span class="pill pill-gray">' + esc(day.weather.kind || '') + '</span></div>' +
+          '<div class="bv"><b>' + esc(day.weather.cond) + '</b>　' + esc(day.weather.temp) + '</div></div>' +
+        '</div>';
+      }
+      if (day.advice) {
+        br += '<div class="brief-row">' +
+          '<span class="ico ico-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg></span>' +
+          '<div><div class="bl">出行建议</div><div class="bv">' + esc(day.advice) + '</div></div>' +
+        '</div>';
+      }
+      if (day.gear) {
+        br += '<div class="brief-row">' +
+          '<span class="ico ico-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 5.5 5.5 9 8 7.8V21h8V7.8L18.5 9 20 5.5 16 3a4 4 0 0 1-8 0z"/></svg></span>' +
+          '<div><div class="bl">穿衣与防护</div><div class="bv">' + esc(day.gear) + '</div></div>' +
+        '</div>';
+      }
+      br += '</div>';
+      head += br;
+    }
     card.innerHTML = head;
 
     var tl = el('div', 'timeline');
@@ -460,8 +487,12 @@
                    '<div class="tl-links"><a href="' + esc(t.officialUrl) + '" target="_blank" rel="noopener">12306 购票</a>' +
                    '<a href="' + MAP.amap(t.fromStation) + '" target="_blank" rel="noopener">出发站定位</a></div>';
         } else if (a) {
+          if (a.closure && a.closure.closed) {
+            inner += '<div class="tl-desc closure-note">⛔ ' + esc(a.name) + ' 自 ' + esc(a.closure.from) + ' 起' +
+                     esc(a.closure.scope) + '暂停对外开放（' + esc(a.closure.reason) + '，' + esc(a.closure.duration) + '）。</div>';
+          }
           inner += '<div class="tl-desc">' + esc(a.ticketPrice) + '</div>' +
-                   '<div class="tl-links"><a href="' + esc(a.officialUrl) + '" target="_blank" rel="noopener">官方购票 / 预约</a>' +
+                   '<div class="tl-links"><a href="' + esc(a.officialUrl) + '" target="_blank" rel="noopener">官方入口 / 规则来源</a>' +
                    '<a href="' + MAP.amap(a.name) + '" target="_blank" rel="noopener">地图定位</a></div>';
         } else if (hh) {
           inner += '<div class="tl-links"><a href="' + esc(hh.bookingUrl) + '" target="_blank" rel="noopener">预订平台</a>' +

@@ -283,9 +283,20 @@ details.doc .doc-body b{color:var(--text)}
 .day-head{margin-bottom:16px}
 .day-head .t{font-size:19px;font-weight:750;letter-spacing:-.015em;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .day-head .c{font-size:13px;color:var(--muted);margin-top:5px}
-.day-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:14px 0 18px}
+.day-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:14px 0 12px}
 .day-meta div{background:var(--surface-2);border-radius:var(--radius-sm);padding:10px 11px;font-size:13px;font-weight:600}
 .day-meta span{display:block;color:var(--muted);font-size:11.5px;font-weight:500;margin-bottom:2px}
+
+/* 当日简报：天气 / 出行建议 / 穿衣防护 */
+.day-brief{border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:18px;background:var(--surface)}
+.brief-row{display:flex;gap:11px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.brief-row:last-child{border-bottom:0}
+.brief-row>.ico{margin-top:1px}
+.brief-row>div{min-width:0;flex:1}
+.brief-row .bl{font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.02em;display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.brief-row .bv{font-size:13px;color:var(--text-2);line-height:1.7}
+.brief-row .bv b{color:var(--text)}
+.closure-note{color:var(--red);background:var(--red-soft);border-radius:9px;padding:9px 11px;margin-top:7px;line-height:1.65}
 
 .timeline{position:relative;padding-left:24px}
 .timeline:before{content:"";position:absolute;left:5px;top:10px;bottom:10px;width:2px;background:linear-gradient(180deg,var(--line-2),var(--line))}
