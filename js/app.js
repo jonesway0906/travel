@@ -134,6 +134,7 @@
         source: t.source
       });
     });
+    var seenExtra = {};
     DATA.attractions.forEach(function (a) {
       var isFree = a.ticketPrice && a.ticketPrice.indexOf('免费') === 0;
       list.push({
@@ -155,6 +156,8 @@
       });
       (a.extraTransports || []).forEach(function (x) {
         var inc = x.included === true;
+        if (seenExtra[x.name]) return; // 同一产品挂在多个景点时只列一次
+        seenExtra[x.name] = 1;
         list.push({
           kind: '观光车', cat: '观光车',
           title: a.name + ' · ' + x.name,
@@ -217,19 +220,6 @@
       cd.innerHTML = '<span class="n">今天</span><span class="l">出发</span>';
     } else {
       cd.innerHTML = '<span class="n">' + (-d) + '</span><span class="l">天前出发</span>';
-    }
-
-    // 若有 3 天内开售的票，在「购票日历」导航上加提示点
-    var urgent = buildTickets().some(function (t) {
-      if (t.status === '不适用' || /已购买/.test(t.status || '')) return false;
-      var n = daysFromToday(t.saleDate);
-      return n != null && n >= 0 && n <= 3;
-    });
-    var btn = $('.nav-btn[data-view="tickets"]');
-    if (btn) {
-      var dot = $('.dot', btn);
-      if (urgent && !dot) btn.appendChild(el('span', 'dot'));
-      else if (!urgent && dot) dot.remove();
     }
   }
 
@@ -308,30 +298,41 @@
     /* ---- 关键购票（仅显示还需处理的） ---- */
     var allTickets = buildTickets();
     var tickets = allTickets.filter(function (t) {
-      return t.status !== '不适用' && !/已购买|已购票/.test(t.status || '');
+      return t.status !== '不适用' && !/已购买|已购票|已预订/.test(t.status || '');
     });
-    var withSale = tickets.filter(function (t) { return t.saleDate; })
-      .sort(function (a, b) { return a.saleDate < b.saleDate ? -1 : 1; });
-    var upcoming = withSale.filter(function (t) { var n = daysFromToday(t.saleDate); return n != null && n >= -30; }).slice(0, 5);
+    var ordered = tickets.slice().sort(function (a, b) {
+      var an = a.saleDate ? daysFromToday(a.saleDate) : null;
+      var bn = b.saleDate ? daysFromToday(b.saleDate) : null;
+      if (an == null && bn == null) return 0;
+      if (an == null) return 1;
+      if (bn == null) return -1;
+      return an - bn;
+    });
     var kt = $('#overviewKeyTickets');
-    if (!upcoming.length) {
-      kt.innerHTML = '<p class="card-sub" style="margin:0">暂无可推算开售日期的条目。</p>';
+    if (!ordered.length) {
+      kt.innerHTML = '<p class="card-sub" style="margin:0">票务与住宿都已处理完成 🎉</p>';
     } else {
-      kt.innerHTML = upcoming.map(function (t) {
-        var n = daysFromToday(t.saleDate);
+      kt.innerHTML = ordered.map(function (t) {
+        var n = t.saleDate ? daysFromToday(t.saleDate) : null;
         var big, lbl;
-        if (n > 0) { big = n; lbl = '天后开售'; }
+        if (n == null) { big = '—'; lbl = '待购买'; }
+        else if (n > 0) { big = n; lbl = '天后开售'; }
         else if (n === 0) { big = '今日'; lbl = '开售'; }
         else { big = '已开'; lbl = '售 ' + (-n) + ' 天'; }
-        return '<div class="tk-mini' + (n >= 0 && n <= 3 ? ' urgent' : '') + '">' +
+        var sub = t.saleDate
+          ? (fmtDate(t.saleDate) + ' ' + (t.saleKnown ? t.saleTime : '时刻待核实') + ' · ' + t.status)
+          : ((t.travelDate ? fmtDate(t.travelDate) + ' 使用 · ' : '') + t.status);
+        return '<div class="tk-mini' + (n != null && n >= 0 && n <= 3 ? ' urgent' : '') + '">' +
           '<div class="when"><div class="n">' + esc(String(big)) + '</div><div class="d">' + esc(lbl) + '</div></div>' +
           '<div class="body">' +
             '<div class="t">' + esc(t.title) + '</div>' +
-            '<div class="s">' + esc(fmtDate(t.saleDate)) + ' ' + esc(t.saleKnown ? t.saleTime : '时刻待核实') + ' · ' + esc(t.status) + '</div>' +
+            '<div class="s">' + esc(sub) + '</div>' +
           '</div>' +
         '</div>';
       }).join('');
     }
+    var kc = $('#keyTicketCount');
+    if (kc) kc.textContent = tickets.length ? ('待处理 ' + tickets.length + ' 项') : '已全部处理';
 
     /* ---- 进度 ---- */
     var done = DATA.todos.filter(function (t) { return doneSet[t.id]; }).length;
@@ -352,7 +353,7 @@
         '<div class="doc-body">' +
           '<p><b>年份推断：</b>' + esc(m.yearAssumption) + '</p>' +
           (m.closureCheck ? '<p><b>景点开放状态核查：</b>' + esc(m.closureCheck) + '</p>' : '') +
-          '<p><b>天气来源：</b>10/19—10/27 为天气预报（tianqi.com，2026-10-13 查询）；10/28 起超出预报范围，为同期气候参考，出行前请再确认。</p>' +
+          '<p><b>天气来源：</b>10/19—10/30 为天气预报（tianqi.com，2026-10-16 查询）；10/31 起超出预报范围，为同期气候参考，出行前请再确认。</p>' +
           '<p><b>预售规则：</b>' + esc(m.presaleRule) + '</p>' +
           '<p><b>数据来源：</b>' + esc(m.sourceNote) + '</p>' +
           '<p style="margin:0;color:var(--muted)">最后核实日期：' + esc(m.lastVerified) + '</p>' +
@@ -909,14 +910,11 @@
         activeDay = 'overview';
         renderDayTabs(); renderDayPanel();
         renderPlaces();
-        renderTicketFilters(); renderTicketList(); renderSaleTimeTable();
-        renderHotels();
-        renderTodoFilters(); renderTodoProgress(); renderTodoList();
         $('#exportJson').addEventListener('click', exportJson);
         $('#exportIcs').addEventListener('click', exportIcs);
         $('#printPage').addEventListener('click', function () { window.print(); });
         $('#resetTodos').addEventListener('click', function () {
-          if (confirm('确定清除全部已勾选的待办状态吗？')) { doneSet = {}; saveDone(); renderTodoList(); renderTodoProgress(); renderOverview(); renderHeader(); }
+          if (confirm('确定清除全部已勾选的待办状态吗？')) { doneSet = {}; saveDone(); renderDayPanel(); renderOverview(); renderHeader(); }
         });
         $('#icsNote').textContent = '说明：本网站是静态页面，无法在关闭后主动推送手机通知。请使用「购票提醒日历（ICS）」导入系统日历，或使用购票日历清单自行设置提醒。';
         initTabs();

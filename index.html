@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2f6bff">
 <title>赵赵勇闯世界</title>
-<meta name="description" content="个人旅游行程与购票管理：每日路线、交通班次、门票与观光车购票时间、住宿安排、待办清单。">
+<meta name="description" content="个人旅游行程管理：每日路线、交通班次、天气与穿衣建议、门票与住宿安排。">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -33,14 +33,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
         每日行程
       </button>
-      <button class="nav-btn" data-view="tickets">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1.6a2.4 2.4 0 0 0 0 4.8V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3.6a2.4 2.4 0 0 0 0-4.8z"/></svg>
-        购票与住宿
-      </button>
-      <button class="nav-btn" data-view="todos">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2.5 2.5L20 5"/><path d="M20 12.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
-        待办清单
-      </button>
     </div>
   </nav>
 </header>
@@ -61,23 +53,35 @@
     <div class="card">
       <div class="card-hd">
         <h2><span class="ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1.6a2.4 2.4 0 0 0 0 4.8V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3.6a2.4 2.4 0 0 0 0-4.8z"/></svg></span>关键购票时间</h2>
-        <a href="#tickets" class="small" data-goto="tickets">全部 ›</a>
+        <span class="small muted" id="keyTicketCount"></span>
       </div>
+      <p class="card-sub">只列出还需处理的条目；已购 / 已预订的项目在对应日期的行程页里查看。</p>
       <div id="overviewKeyTickets"></div>
     </div>
 
     <div class="card">
       <div class="card-hd">
         <h2><span class="ico ico-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5 11 15l4.5-5"/></svg></span>待办进度</h2>
-        <a href="#todos" class="small" data-goto="todos">清单 ›</a>
+        <button class="small linky" id="resetTodos" type="button">清除勾选</button>
       </div>
       <div id="overviewProgress"></div>
+      <p class="card-sub" style="margin:10px 0 0">勾选状态保存在本机浏览器；每个待办也出现在对应日期的行程页里。</p>
     </div>
 
     <div class="card">
       <h2><span class="ico ico-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg></span>全部地点定位</h2>
       <p class="card-sub">酒店、景点、车站均可直接在高德 / 百度 / 腾讯地图中打开。</p>
       <div id="overviewPlaces"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico ico-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>导出与打印</h2>
+      <div class="export-row">
+        <button class="btn" id="exportIcs">购票提醒日历（ICS）</button>
+        <button class="btn btn-ghost" id="exportJson">行程数据（JSON）</button>
+        <button class="btn btn-ghost" id="printPage">打印友好视图</button>
+      </div>
+      <p class="card-sub" id="icsNote" style="margin:0"></p>
     </div>
 
     <div id="overviewDocWrap"></div>
@@ -87,48 +91,6 @@
   <section class="view" id="view-daily" hidden>
     <div class="day-tabs" id="dayTabs" role="tablist"></div>
     <div id="dayPanel"></div>
-  </section>
-
-  <!-- ============ 购票与住宿 ============ -->
-  <section class="view" id="view-tickets" hidden>
-    <div class="card">
-      <div class="card-hd"><h2><span class="ico ico-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1.6a2.4 2.4 0 0 0 0 4.8V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3.6a2.4 2.4 0 0 0 0-4.8z"/></svg></span>购票 / 预约</h2></div>
-      <p class="card-sub">按开售日期排序。开售日期依据 12306「预售期 15 天（含当日）」与各车站起售时刻推算；未核实到确切时刻的标注「待核实」。</p>
-      <div class="filters" id="ticketFilters"></div>
-      <div id="ticketList"></div>
-    </div>
-    <div class="card">
-      <div class="card-hd"><h2><span class="ico ico-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-8h18v8M3 15h18M6 11V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/></svg></span>住宿预订</h2></div>
-      <p class="card-sub">仅当确认已预订的酒店才显示「已预订」。</p>
-      <div id="hotelList"></div>
-    </div>
-    <div class="card">
-      <h2><span class="ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg></span>车站起售时刻</h2>
-      <div id="saleTimeTable"></div>
-    </div>
-    <div class="card">
-      <h2><span class="ico ico-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>导出</h2>
-      <div class="export-row">
-        <button class="btn" id="exportJson">下载行程数据（JSON）</button>
-        <button class="btn" id="exportIcs">下载购票提醒日历（ICS）</button>
-        <button class="btn btn-ghost" id="printPage">打印友好视图</button>
-      </div>
-      <p class="card-sub" id="icsNote" style="margin:0"></p>
-    </div>
-  </section>
-
-  <!-- ============ 待办清单 ============ -->
-  <section class="view" id="view-todos" hidden>
-    <div class="card">
-      <div class="card-hd"><h2><span class="ico ico-rose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2.5 2.5L20 5"/><path d="M20 12.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>旅行待办清单</h2></div>
-      <p class="card-sub">勾选状态保存在本机浏览器，刷新后仍会保留。每个待办也出现在对应日期的行程页里。</p>
-      <div class="progress-line" id="todoProgress"></div>
-      <div class="filters" id="todoFilters"></div>
-      <div id="todoList"></div>
-      <div class="todo-actions">
-        <button class="btn btn-ghost" id="resetTodos">清除全部勾选</button>
-      </div>
-    </div>
   </section>
 </main>
 
