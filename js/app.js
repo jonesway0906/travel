@@ -558,6 +558,34 @@
         dayTk.join('')));
     }
 
+    /* 当地美食推荐（按当天所在地匹配；过渡日回退到当天经过的城市） */
+    var foodList = DATA.foods || [];
+    var food = foodList.filter(function (f) { return f.city === dayPlace(day); })[0];
+    if (!food) {
+      String(day.city || '').replace(/（[^）]*）/g, '').split(' → ').forEach(function (c) {
+        if (food) return;
+        food = foodList.filter(function (f) { return f.city === c.trim(); })[0];
+      });
+    }
+    if (food) {
+      var fh = '<div class="card-hd"><h2><span class="ico ico-orange">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9.5 7.2c0-1.2 1.3-1.8 1.3-3M14.5 7.2c0-1.2 1.3-1.8 1.3-3"/></svg>' +
+        '</span>当地美食推荐 · ' + esc(food.city) + '</h2></div>';
+      if (food.note) fh += '<p class="card-sub">' + esc(food.note) + '</p>';
+      if (food.markets) fh += '<p class="food-markets">逛吃地点：' + esc(food.markets) + '</p>';
+      fh += '<div class="food-list">' + food.items.map(function (it) {
+        return '<div class="food-item">' +
+          '<div class="fi-hd"><span class="fi-n">' + esc(it.name) + '</span>' +
+          '<span class="fi-k">' + esc(it.kind) + '</span>' +
+          '<span class="fi-p">' + esc(it.price) + '</span></div>' +
+          '<div class="fi-d">' + esc(it.desc) + '</div>' +
+          (it.where ? '<div class="fi-w">📍 ' + esc(it.where) + '</div>' : '') +
+          (it.solo ? '<div class="fi-s">👤 ' + esc(it.solo) + '</div>' : '') +
+        '</div>';
+      }).join('') + '</div>';
+      p.appendChild(el('div', 'card', fh));
+    }
+
     // 当天待办
     var td = DATA.todos.filter(function (t) { return t.dayId === day.id; });
     if (td.length) {
